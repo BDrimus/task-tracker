@@ -2,8 +2,11 @@ package task
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"os"
+
+	"golang.org/x/exp/slog"
 )
 
 const DBLocation = "tasks.json"
@@ -20,6 +23,16 @@ type Task struct {
 	// ID     uint64         `json:"id"`
 	Title  string         `json:"title"`
 	Status ProgressStatus `json:"status"`
+}
+
+func Initialise() {
+	if _, err := os.Stat(DBLocation); errors.Is(err, os.ErrNotExist) {
+
+		err := os.WriteFile(DBLocation, []byte(""), 0644)
+		if err != nil {
+			slog.Error("unable to create file: %w", err)
+		}
+	}
 }
 
 func FindSmallestAvailableID() (id uint64) {
