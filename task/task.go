@@ -3,8 +3,8 @@ package task
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
+	"time"
 
 	"golang.org/x/exp/slog"
 )
@@ -20,9 +20,11 @@ const (
 )
 
 type Task struct {
-	// ID     uint64         `json:"id"`
-	Title  string         `json:"title"`
-	Status ProgressStatus `json:"status"`
+	Id          uint64         `json:"id"`
+	Description string         `json:"description"`
+	Status      ProgressStatus `json:"status"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
 }
 
 func Initialise() {
@@ -35,40 +37,102 @@ func Initialise() {
 	}
 }
 
-func FindSmallestAvailableID() (id uint64) {
+// getNextAvailableId retrieves the next available task ID.
+// It fetches the list of tasks using the GetTasks function.
+// If the task list is empty or the JSON is empty, it returns 1 as the next available ID.
+// Otherwise, it returns the ID of the last task incremented by 1.
+// Returns an error if there is an issue fetching the tasks.
+func getNextAvailableId() (uint64, error) {
 
-	return id
+	tasks, err := GetTasks()
+	if err != nil {
+		if err.Error() == ErrEmptyJson.Error() {
+			return 1, nil
+		}
+		return 0, err
+	}
+
+	if len(tasks) == 0 {
+		return 1, nil
+	}
+
+	lastTask := tasks[len(tasks)-1]
+
+	return lastTask.Id + 1, nil
 }
 
-// FIXME - Overwrite
-func AddTask(title string) ([]Task, error) {
+// AddTask adds a new task with the given description to the task list.
+//
+// Parameters:
+//
+//	description (string): The description of the new task.
+//
+// Returns:
+//
+//	*Task: A pointer to the newly created Task.
+//	error: An error if the task could not be added, or nil if the task was added successfully.
+func AddTask(description string) (*Task, error) {
 
-	var t []Task
+	nextAvailableId, err := getNextAvailableId()
+	if err != nil {
+		slog.Error("Couldn't find available ID")
+		return nil, err
+	}
 
-	t = append(t, Task{Title: title, Status: NotStarted})
+	t := Task{
+		Id:          nextAvailableId,
+		Description: description,
+		Status:      NotStarted,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
 
-	marshalled, _ := json.MarshalIndent(t, "", "  ")
+	tasks, err := GetTasks()
+	if err != nil && err.Error() != ErrEmptyJson.Error() {
+		slog.Error("Couldn't get tasks")
+		return nil, err
+	}
+
+	tasks = append(tasks, t)
+
+	marshalled, err := json.MarshalIndent(tasks, "", "  ")
+	if err != nil {
+		slog.Error("Couldn't marshal")
+		return nil, err
+	}
 
 	_ = os.WriteFile(DBLocation, marshalled, 0644)
 
-	return t, nil
+	return &t, nil
 }
 
+// GetTasks retrieves the list of tasks from the database file specified by DBLocation.
+// It reads the file content, unmarshals the JSON data into a slice of Task structs, and returns it.
+// If the file is empty, it returns an ErrEmptyJson error.
+// If there is an error reading the file or unmarshalling the JSON data, it returns the respective error.
+//
+// Returns:
+//   - []Task: A slice of Task structs representing the tasks.
+//   - error: An error if there is an issue reading the file or unmarshalling the JSON data, or if the file is empty.
 func GetTasks() ([]Task, error) {
 
 	var t []Task
 
 	f, err := os.ReadFile(DBLocation)
 	if err != nil {
-		log.Println(err)
 		return nil, err
+	}
+
+	if len(f) == 0 {
+		return nil, ErrEmptyJson
 	}
 
 	err = json.Unmarshal(f, &t)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
 	return t, nil
 }
+
+var ErrEmptyJson = errors.New("empty json")

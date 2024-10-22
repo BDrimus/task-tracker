@@ -12,15 +12,15 @@ import (
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:   "add [task-title]",
+	Use:   "add [task-descritption]",
 	Short: "Add new task",
-	Long: `Add a new task with a task title. For example:
+	Long: `Add a new task with a task description. For example:
 
 add "this is a new task"`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		title := args[0]
-		task.AddTask(title)
+		description := args[0]
+		task.AddTask(description)
 		fmt.Println("add called")
 	},
 }
