@@ -182,7 +182,7 @@ func DeleteTask(id uint64) error {
 // Returns:
 //   - []Task: A slice of Task structs representing the tasks.
 //   - error: An error if there is an issue reading the file or unmarshalling the JSON data, or if the file is empty.
-func GetTasks() ([]Task, error) {
+func GetTasks(filters ...ProgressStatus) ([]Task, error) {
 
 	var t []Task
 
@@ -200,7 +200,24 @@ func GetTasks() ([]Task, error) {
 		return nil, err
 	}
 
-	return t, nil
+	if len(filters) == 0 {
+		return t, nil
+	}
+
+	// If there was a filter then filter tasks
+
+	var filteredTasks []Task
+
+	for _, task := range t {
+		for _, filter := range filters {
+			if task.Status == filter {
+				filteredTasks = append(filteredTasks, task)
+			}
+		}
+	}
+
+	return filteredTasks, nil
+
 }
 
 var ErrEmptyJson = errors.New("empty json")
