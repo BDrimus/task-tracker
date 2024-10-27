@@ -22,11 +22,15 @@ update 3 "this is an updated task"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		idStr, description := args[0], args[1]
 
+		newTask := task.Task{
+			Description: description,
+		}
+
 		id, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil {
 			fmt.Println("ID has to be a positive number")
 		} else {
-			task.UpdateTask(id, description)
+			task.UpdateTask(id, newTask)
 		}
 	},
 }

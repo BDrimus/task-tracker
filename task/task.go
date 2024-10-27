@@ -3,6 +3,7 @@ package task
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -112,7 +113,7 @@ func AddTask(description string) (*Task, error) {
 	return &t, nil
 }
 
-func UpdateTask(id uint64, description string) (*Task, error) {
+func UpdateTask(id uint64, newTask Task) (*Task, error) {
 	tasks, err := GetTasks()
 	if err != nil {
 		return nil, ErrCouldntGetTasks
@@ -124,7 +125,18 @@ func UpdateTask(id uint64, description string) (*Task, error) {
 	for _, task := range tasks {
 		if task.Id == id {
 			taskToUpdate = task
-			taskToUpdate.Description = description
+			if newTask.Description != "" {
+				taskToUpdate.Description = newTask.Description
+			}
+
+			if newTask.Status != "" {
+				taskToUpdate.Status = newTask.Status
+			}
+
+			fmt.Printf("status %v\n", newTask.Status)
+			fmt.Printf("newTask %v", newTask)
+
+			taskToUpdate.UpdatedAt = time.Now()
 			listOfTasks = append(listOfTasks, taskToUpdate)
 
 			continue
