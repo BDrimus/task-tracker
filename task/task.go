@@ -3,7 +3,6 @@ package task
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"time"
 
@@ -132,9 +131,6 @@ func UpdateTask(id uint64, newTask Task) (*Task, error) {
 			if newTask.Status != "" {
 				taskToUpdate.Status = newTask.Status
 			}
-
-			fmt.Printf("status %v\n", newTask.Status)
-			fmt.Printf("newTask %v", newTask)
 
 			taskToUpdate.UpdatedAt = time.Now()
 			listOfTasks = append(listOfTasks, taskToUpdate)

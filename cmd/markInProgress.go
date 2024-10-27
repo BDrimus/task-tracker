@@ -28,8 +28,6 @@ markInProgress 3`,
 		}
 
 		task.UpdateTask(id, task.Task{Status: task.InProgress})
-
-		fmt.Println("markInProgress called")
 	},
 }
 

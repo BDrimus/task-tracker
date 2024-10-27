@@ -4,8 +4,6 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/BDrimus/task-tracker/task"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +19,6 @@ task-tracker add "this is a new task"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		description := args[0]
 		task.AddTask(description)
-		fmt.Println("add called")
 	},
 }
 
