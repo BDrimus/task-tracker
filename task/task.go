@@ -37,6 +37,18 @@ func Initialise() {
 	}
 }
 
+func writeToJson(tasks []Task) error {
+	marshalled, err := json.MarshalIndent(tasks, "", "  ")
+	if err != nil {
+		slog.Error("Couldn't marshal")
+		return err
+	}
+
+	_ = os.WriteFile(DBLocation, marshalled, 0644)
+
+	return nil
+}
+
 // getNextAvailableId retrieves the next available task ID.
 // It fetches the list of tasks using the GetTasks function.
 // If the task list is empty or the JSON is empty, it returns 1 as the next available ID.
@@ -89,22 +101,43 @@ func AddTask(description string) (*Task, error) {
 
 	tasks, err := GetTasks()
 	if err != nil && err.Error() != ErrEmptyJson.Error() {
-		slog.Error("Couldn't get tasks")
+		slog.Error(ErrCouldntGetTasks.Error())
 		return nil, err
 	}
 
 	tasks = append(tasks, t)
 
-	marshalled, err := json.MarshalIndent(tasks, "", "  ")
-	if err != nil {
-		slog.Error("Couldn't marshal")
-		return nil, err
-	}
-
-	_ = os.WriteFile(DBLocation, marshalled, 0644)
+	writeToJson(tasks)
 
 	return &t, nil
 }
+
+func UpdateTask(id uint64, description string) (*Task, error) {
+	tasks, err := GetTasks()
+	if err != nil {
+		return nil, ErrCouldntGetTasks
+	}
+
+	var taskToUpdate Task
+	var listOfTasks []Task
+
+	for _, task := range tasks {
+		if task.Id == id {
+			taskToUpdate = task
+			taskToUpdate.Description = description
+			listOfTasks = append(listOfTasks, taskToUpdate)
+
+			continue
+		}
+		listOfTasks = append(listOfTasks, task)
+	}
+
+	writeToJson(listOfTasks)
+
+	return &taskToUpdate, nil
+}
+
+// FIXME - Filter options
 
 // GetTasks retrieves the list of tasks from the database file specified by DBLocation.
 // It reads the file content, unmarshals the JSON data into a slice of Task structs, and returns it.
@@ -136,3 +169,4 @@ func GetTasks() ([]Task, error) {
 }
 
 var ErrEmptyJson = errors.New("empty json")
+var ErrCouldntGetTasks = errors.New("couln't get tasks")

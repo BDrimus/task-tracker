@@ -26,8 +26,9 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		fmt.Println("list called")
-		fmt.Println(tasks)
+		for _, task := range tasks {
+			fmt.Println(task)
+		}
 	},
 }
 
