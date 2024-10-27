@@ -137,6 +137,29 @@ func UpdateTask(id uint64, description string) (*Task, error) {
 	return &taskToUpdate, nil
 }
 
+func DeleteTask(id uint64) error {
+	tasks, err := GetTasks()
+	if err != nil {
+		slog.Error(ErrCouldntGetTasks.Error())
+		return err
+	}
+
+	var listOfTasks []Task
+
+	for _, task := range tasks {
+
+		if task.Id == id {
+			continue
+		}
+
+		listOfTasks = append(listOfTasks, task)
+
+		writeToJson(listOfTasks)
+	}
+
+	return nil
+}
+
 // FIXME - Filter options
 
 // GetTasks retrieves the list of tasks from the database file specified by DBLocation.
